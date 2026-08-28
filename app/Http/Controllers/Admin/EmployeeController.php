@@ -129,11 +129,27 @@ class EmployeeController extends Controller
                 ]);
             }
 
+            $deptName = Department::find($request->department_id)?->name ?? '-';
+            $posName = Position::find($request->position_id)?->name ?? '-';
+            $branchName = Branch::find($request->branch_id)?->name ?? '-';
+            $shiftName = Shift::find($request->default_shift_id)?->name ?? '-';
+
             \App\Models\ActivityLog::record(
                 'Data Karyawan',
                 'CREATE',
-                "Menambahkan karyawan baru: {$user->name} (NIK: {$employee->nik}, Role: {$request->role})",
-                ['nik' => $employee->nik, 'name' => $user->name, 'email' => $user->email]
+                "Menambahkan karyawan baru: {$user->name} (NIK: {$employee->nik}, Divisi: {$deptName}, Jabatan: {$posName})",
+                [
+                    'nik' => $employee->nik,
+                    'nama_lengkap' => $user->name,
+                    'email' => $user->email,
+                    'peran_akun' => $request->role,
+                    'divisi' => $deptName,
+                    'jabatan' => $posName,
+                    'kantor_cabang' => $branchName,
+                    'shift_kerja' => $shiftName,
+                    'status_kepegawaian' => ucfirst($employee->employment_status),
+                    'status_aktif' => 'Aktif',
+                ]
             );
         });
 
@@ -173,8 +189,35 @@ class EmployeeController extends Controller
         ]);
 
         DB::transaction(function () use ($request, $employee) {
+            $employee->load(['user.roles', 'department', 'position', 'branch', 'defaultShift']);
             $user = $employee->user;
-            $oldName = $user->name;
+
+            $statusLabels = [
+                'permanent' => 'Pegawai Tetap (Permanent)',
+                'contract' => 'Pegawai Kontrak (Contract)',
+                'probation' => 'Masa Percobaan (Probation)',
+                'intern' => 'Magang (Intern)',
+            ];
+
+            // 1. Capture complete state BEFORE update
+            $oldRole = $user->roles->first()?->name ?? 'Staff';
+            $beforeData = [
+                'nama_lengkap' => $user->name,
+                'email' => $user->email,
+                'peran_akun' => $oldRole,
+                'nik' => $employee->nik,
+                'divisi' => $employee->department?->name ?? '-',
+                'jabatan' => $employee->position?->name ?? '-',
+                'kantor_cabang' => $employee->branch?->name ?? '-',
+                'shift_kerja' => $employee->defaultShift?->name ?? '-',
+                'status_kepegawaian' => $statusLabels[$employee->employment_status] ?? ucfirst($employee->employment_status ?? '-'),
+                'status_aktif' => $employee->is_active ? 'Aktif' : 'Non-Aktif',
+                'nomor_telepon' => $employee->phone ?? '-',
+                'jenis_kelamin' => $employee->gender === 'male' ? 'Laki-laki' : 'Perempuan',
+                'tanggal_bergabung' => $employee->join_date ? $employee->join_date->format('d/m/Y') : '-',
+            ];
+
+            // 2. Perform Database updates
             $userData = [
                 'name' => $request->name,
                 'email' => $request->email,
@@ -207,11 +250,52 @@ class EmployeeController extends Controller
 
             $employee->update($empData);
 
+            // 3. Capture state AFTER update
+            $newDept = Department::find($request->department_id)?->name ?? '-';
+            $newPos = Position::find($request->position_id)?->name ?? '-';
+            $newBranch = Branch::find($request->branch_id)?->name ?? '-';
+            $newShift = Shift::find($request->default_shift_id)?->name ?? '-';
+            $newJoinDate = \Carbon\Carbon::parse($request->join_date)->format('d/m/Y');
+
+            $afterData = [
+                'nama_lengkap' => $request->name,
+                'email' => $request->email,
+                'peran_akun' => $request->role,
+                'nik' => $request->nik,
+                'divisi' => $newDept,
+                'jabatan' => $newPos,
+                'kantor_cabang' => $newBranch,
+                'shift_kerja' => $newShift,
+                'status_kepegawaian' => $statusLabels[$request->employment_status] ?? ucfirst($request->employment_status),
+                'status_aktif' => $request->boolean('is_active') ? 'Aktif' : 'Non-Aktif',
+                'nomor_telepon' => $request->phone ?? '-',
+                'jenis_kelamin' => $request->gender === 'male' ? 'Laki-laki' : 'Perempuan',
+                'tanggal_bergabung' => $newJoinDate,
+            ];
+
+            // 4. Calculate detailed diff summary
+            $changedLabels = [];
+            foreach ($afterData as $k => $newVal) {
+                $oldVal = $beforeData[$k] ?? null;
+                if ($oldVal !== $newVal) {
+                    $label = ucwords(str_replace('_', ' ', $k));
+                    $changedLabels[] = "{$label}: '{$oldVal}' → '{$newVal}'";
+                }
+            }
+
+            $changesText = count($changedLabels) > 0
+                ? " [Perubahan: " . implode(', ', array_slice($changedLabels, 0, 3)) . (count($changedLabels) > 3 ? ', dsb.' : '') . "]"
+                : " (Tidak ada nilai yang diubah)";
+
             \App\Models\ActivityLog::record(
                 'Data Karyawan',
                 'UPDATE',
-                "Memperbarui profil data karyawan: {$user->name} (NIK: {$employee->nik})",
-                ['nik' => $employee->nik, 'name' => $user->name, 'status' => $empData['employment_status']]
+                "Memperbarui data profil karyawan: {$user->name} (NIK: {$request->nik}){$changesText}",
+                [
+                    'sebelum' => $beforeData,
+                    'sesudah' => $afterData,
+                    'perubahan' => $changedLabels,
+                ]
             );
         });
 
@@ -222,7 +306,10 @@ class EmployeeController extends Controller
     {
         $user = $employee->user;
         $name = $user?->name ?? 'Karyawan';
+        $email = $user?->email ?? '-';
         $nik = $employee->nik;
+        $deptName = $employee->department?->name ?? '-';
+        $posName = $employee->position?->name ?? '-';
 
         $employee->delete();
         if ($user) {
@@ -232,8 +319,14 @@ class EmployeeController extends Controller
         \App\Models\ActivityLog::record(
             'Data Karyawan',
             'DELETE',
-            "Menghapus akun dan profil karyawan: {$name} (NIK: {$nik})",
-            ['nik' => $nik, 'name' => $name]
+            "Menghapus akun dan profil karyawan: {$name} (NIK: {$nik}, Divisi: {$deptName})",
+            [
+                'nik' => $nik,
+                'nama_lengkap' => $name,
+                'email' => $email,
+                'divisi' => $deptName,
+                'jabatan' => $posName,
+            ]
         );
 
         return redirect()->route('admin.employees.index')->with('success', 'Data karyawan berhasil dihapus.');

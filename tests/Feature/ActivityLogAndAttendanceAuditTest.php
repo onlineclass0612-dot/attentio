@@ -174,4 +174,46 @@ class ActivityLogAndAttendanceAuditTest extends TestCase
         // Attendance record still exists in database
         $this->assertDatabaseHas('attendances', ['id' => $att->id]);
     }
+
+    public function test_activity_log_records_diff_when_employee_is_updated(): void
+    {
+        $newDept = Department::create(['name' => 'Finance', 'code' => 'FIN']);
+        $newPos = Position::create(['department_id' => $newDept->id, 'name' => 'Finance Staff', 'level' => 'Staff']);
+
+        $response = $this->actingAs($this->admin)->put(route('admin.employees.update', $this->employee->id), [
+            'name' => 'Budi Staff Updated',
+            'email' => $this->employeeUser->email,
+            'nik' => $this->employee->nik,
+            'role' => 'Employee',
+            'department_id' => $newDept->id,
+            'position_id' => $newPos->id,
+            'branch_id' => $this->employee->branch_id,
+            'default_shift_id' => $this->employee->default_shift_id,
+            'phone' => '081234567890',
+            'gender' => 'male',
+            'employment_status' => 'contract',
+            'join_date' => '2024-01-01',
+            'is_active' => '1',
+        ]);
+
+        $response->assertRedirect(route('admin.employees.index'));
+
+        $log = ActivityLog::where('module', 'Data Karyawan')
+            ->where('action', 'UPDATE')
+            ->latest('id')
+            ->first();
+
+        $this->assertNotNull($log);
+        $this->assertStringContainsString('Budi Staff Updated', $log->description);
+        $this->assertStringContainsString('Perubahan', $log->description);
+
+        $props = $log->properties;
+        $this->assertIsArray($props);
+        $this->assertArrayHasKey('sebelum', $props);
+        $this->assertArrayHasKey('sesudah', $props);
+        $this->assertEquals('Engineering', $props['sebelum']['divisi']);
+        $this->assertEquals('Finance', $props['sesudah']['divisi']);
+        $this->assertEquals('Pegawai Tetap (Permanent)', $props['sebelum']['status_kepegawaian']);
+        $this->assertEquals('Pegawai Kontrak (Contract)', $props['sesudah']['status_kepegawaian']);
+    }
 }
