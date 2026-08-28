@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="attentionGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#1d4ed8" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <!-- Background Rounded Squircle -->
+  <rect x="3" y="3" width="58" height="58" rx="16" fill="url(#attentionGrad)" filter="url(#glow)"/>
+  
+  <!-- Modern Geometric 'A' Glyph -->
+  <path d="M32 14L18 48H26.2L29.6 39.5H34.4L37.8 48H46L32 14ZM32 24.5L33.7 32.8H30.3L32 24.5Z" fill="#ffffff"/>
+  
+  <!-- Presence Indicator Dot (Active Attendance) -->
+  <circle cx="48" cy="16" r="4.5" fill="#10b981" stroke="#ffffff" stroke-width="1.5"/>
+</svg>

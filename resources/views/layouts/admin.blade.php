@@ -9,6 +9,9 @@
     <meta name="theme-color" content="#2563eb">
     <title>{{ $title ?? 'Admin Portal' }} — Attention OS</title>
     
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    <link rel="alternate icon" href="{{ asset('favicon.ico') }}">
+
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
