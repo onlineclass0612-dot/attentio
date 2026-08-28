@@ -93,6 +93,7 @@
             <table class="w-full text-left text-xs">
                 <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200/80">
                     <tr>
+                        <th class="px-4 py-3.5">Tanggal</th>
                         <th class="px-4 py-3.5">Karyawan</th>
                         <th class="px-4 py-3.5">Departemen</th>
                         <th class="px-4 py-3.5">Jam Masuk (In)</th>
@@ -106,6 +107,10 @@
                 <tbody class="divide-y divide-slate-100">
                     @forelse($attendances as $att)
                         <tr class="hover:bg-slate-50/60 transition">
+                            <td class="px-4 py-3.5 font-mono text-slate-800 whitespace-nowrap">
+                                <p class="font-bold text-slate-900">{{ $att->date ? $att->date->format('d/m/Y') : '-' }}</p>
+                                <span class="text-[10px] text-slate-500 font-sans">{{ $att->date ? $att->date->translatedFormat('l') : '' }}</span>
+                            </td>
                             <td class="px-4 py-3.5">
                                 <div class="flex items-center space-x-2.5">
                                     <img src="{{ $att->employee?->avatar_url }}" class="w-7 h-7 rounded-full object-cover">
@@ -130,6 +135,9 @@
                                 <span class="font-mono font-semibold text-slate-900">
                                     {{ $att->clock_out ? Carbon\Carbon::parse($att->clock_out)->format('H:i') : '--:--' }}
                                 </span>
+                                @if($att->early_leave_minutes > 0)
+                                    <span class="block text-[10px] text-rose-600 font-medium">-{{ $att->early_leave_minutes }}m awal</span>
+                                @endif
                             </td>
                             <td class="px-4 py-3.5">
                                 <p class="text-slate-800 font-semibold">{{ $att->branch?->name ?? 'Kantor Pusat' }}</p>

@@ -47,9 +47,15 @@
                         {{ $attendanceToday && $attendanceToday->clock_in ? Carbon\Carbon::parse($attendanceToday->clock_in)->format('H:i') : '--:--' }}
                     </span>
                     @if($attendanceToday && $attendanceToday->clock_in)
-                        <span class="px-2 py-0.5 text-[10px] font-bold rounded-full {{ $attendanceToday->status === 'late' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800' }}">
-                            {{ $attendanceToday->status === 'late' ? 'Terlambat' : 'Tepat Waktu' }}
-                        </span>
+                        @if($attendanceToday->late_minutes > 0)
+                            <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800">
+                                Telat +{{ $attendanceToday->late_minutes }}m
+                            </span>
+                        @else
+                            <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800">
+                                Tepat Waktu
+                            </span>
+                        @endif
                     @endif
                 </div>
             </div>
@@ -62,9 +68,15 @@
                         {{ $attendanceToday && $attendanceToday->clock_out ? Carbon\Carbon::parse($attendanceToday->clock_out)->format('H:i') : '--:--' }}
                     </span>
                     @if($attendanceToday && $attendanceToday->clock_out)
-                        <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-100 text-blue-800">
-                            Selesai
-                        </span>
+                        @if($attendanceToday->early_leave_minutes > 0)
+                            <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-rose-100 text-rose-800">
+                                Awal -{{ $attendanceToday->early_leave_minutes }}m
+                            </span>
+                        @else
+                            <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-100 text-blue-800">
+                                Selesai
+                            </span>
+                        @endif
                     @endif
                 </div>
             </div>

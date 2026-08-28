@@ -71,6 +71,9 @@
                                     <span class="font-mono font-semibold text-slate-800">
                                         {{ $att->clock_out ? Carbon\Carbon::parse($att->clock_out)->format('H:i') : '--:--' }}
                                     </span>
+                                    @if($att->early_leave_minutes > 0)
+                                        <span class="block text-[10px] text-rose-600 font-medium">-{{ $att->early_leave_minutes }}m awal</span>
+                                    @endif
                                 </td>
                                 <td class="px-4 py-3.5 font-mono text-slate-600">
                                     @if($att->work_duration_minutes > 0)

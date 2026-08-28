@@ -71,9 +71,9 @@
     </div>
 
     <!-- Summary Metrics -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
-            <span class="text-xs font-semibold text-slate-500 block">Total Hadir Tepat Waktu</span>
+            <span class="text-xs font-semibold text-slate-500 block">Hadir Tepat Waktu</span>
             <p class="text-2xl font-black text-emerald-600 mt-1">{{ $totalPresent }} <span class="text-xs font-normal text-slate-400">Record</span></p>
         </div>
         <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
@@ -85,6 +85,10 @@
             <p class="text-2xl font-black text-rose-600 mt-1">{{ $totalLateMinutes }} <span class="text-xs font-normal text-slate-400">Menit</span></p>
         </div>
         <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
+            <span class="text-xs font-semibold text-slate-500 block">Akumulasi Pulang Awal</span>
+            <p class="text-2xl font-black text-rose-600 mt-1">{{ $totalEarlyLeaveMinutes ?? 0 }} <span class="text-xs font-normal text-slate-400">Menit</span></p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm col-span-2 sm:col-span-1">
             <span class="text-xs font-semibold text-slate-500 block">Total Cuti & Izin</span>
             <p class="text-2xl font-black text-blue-600 mt-1">{{ $totalLeave }} <span class="text-xs font-normal text-slate-400">Hari</span></p>
         </div>
@@ -102,6 +106,7 @@
                         <th class="px-4 py-3.5">Jam Masuk</th>
                         <th class="px-4 py-3.5">Jam Pulang</th>
                         <th class="px-4 py-3.5">Terlambat</th>
+                        <th class="px-4 py-3.5">Pulang Awal</th>
                         <th class="px-4 py-3.5">Durasi Kerja</th>
                         <th class="px-4 py-3.5">Status</th>
                     </tr>
@@ -132,6 +137,13 @@
                                     <span class="text-slate-400">0m</span>
                                 @endif
                             </td>
+                            <td class="px-4 py-3.5 font-mono">
+                                @if($att->early_leave_minutes > 0)
+                                    <span class="text-rose-600 font-bold">-{{ $att->early_leave_minutes }}m</span>
+                                @else
+                                    <span class="text-slate-400">0m</span>
+                                @endif
+                            </td>
                             <td class="px-4 py-3.5 font-mono text-slate-600">
                                 @if($att->work_duration_minutes > 0)
                                     {{ floor($att->work_duration_minutes / 60) }}j {{ $att->work_duration_minutes % 60 }}m
@@ -155,7 +167,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="p-8 text-center text-xs text-slate-400">
+                            <td colspan="9" class="p-8 text-center text-xs text-slate-400">
                                 Tidak ada data presensi pada rentang tanggal ini.
                             </td>
                         </tr>

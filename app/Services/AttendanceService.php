@@ -72,7 +72,7 @@ class AttendanceService
 
             if ($now->greaterThan($graceEndTime)) {
                 $status = 'late';
-                $lateMinutes = $now->diffInMinutes($shiftStartTime);
+                $lateMinutes = abs((int) $now->diffInMinutes($shiftStartTime));
             }
         }
 
@@ -162,12 +162,12 @@ class AttendanceService
         if ($shift) {
             $shiftEndTime = Carbon::parse($today . ' ' . $shift->end_time);
             if ($now->lessThan($shiftEndTime)) {
-                $earlyLeaveMinutes = $shiftEndTime->diffInMinutes($now);
+                $earlyLeaveMinutes = abs((int) $shiftEndTime->diffInMinutes($now));
             }
         }
 
         $clockInTime = Carbon::parse($today . ' ' . $attendance->clock_in);
-        $workDurationMinutes = $now->diffInMinutes($clockInTime);
+        $workDurationMinutes = abs((int) $now->diffInMinutes($clockInTime));
 
         // Save Photo
         $photoPath = $this->saveSelfiePhoto($photoData, 'out', $employee->nik);

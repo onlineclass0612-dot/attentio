@@ -21,9 +21,23 @@ class AttendanceController extends Controller
 
         $query = Attendance::with(['employee.user', 'employee.department', 'employee.position', 'branch', 'shift']);
 
-        $date = $request->has('date') ? $request->input('date') : Carbon::today()->format('Y-m-d');
-        if (!empty($date)) {
+        // Date filter handling:
+        // 1. If explicit 'date' param is passed:
+        //    - If filled (e.g. ?date=2026-08-28): filter by that date
+        //    - If empty (e.g. ?date=): show all dates (no date filter)
+        // 2. If NO 'date' param in request:
+        //    - If user is paging (?page=2) or filtering (search, department, etc.): keep date unconstrained (all dates)
+        //    - ONLY if clean request with zero query parameters: default to Today ($date = Carbon::today()->format('Y-m-d'))
+        if ($request->has('date')) {
+            $date = $request->input('date');
+            if (!empty($date)) {
+                $query->where('date', $date);
+            }
+        } elseif (empty($request->query())) {
+            $date = Carbon::today()->format('Y-m-d');
             $query->where('date', $date);
+        } else {
+            $date = '';
         }
 
         if ($spvDepartmentId) {
@@ -50,7 +64,11 @@ class AttendanceController extends Controller
             });
         }
 
-        $attendances = $query->orderBy('clock_in', 'asc')->paginate(20);
+        $attendances = $query->orderBy('date', 'desc')
+            ->orderBy('clock_in', 'asc')
+            ->paginate(20)
+            ->withQueryString();
+
         $departments = $spvDepartmentId ? Department::where('id', $spvDepartmentId)->get() : Department::all();
         $branches = Branch::all();
         $supervisorDepartment = $spvDepartmentId ? $user->employee?->department : null;

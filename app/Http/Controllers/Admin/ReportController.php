@@ -48,6 +48,7 @@ class ReportController extends Controller
         $totalLate = $allRecords->where('status', 'late')->count();
         $totalLeave = $allRecords->whereIn('status', ['leave', 'sick', 'permission'])->count();
         $totalLateMinutes = $allRecords->sum('late_minutes');
+        $totalEarlyLeaveMinutes = $allRecords->sum('early_leave_minutes');
 
         $departments = $spvDepartmentId ? Department::where('id', $spvDepartmentId)->get() : Department::all();
         $branches = Branch::all();
@@ -65,6 +66,7 @@ class ReportController extends Controller
             'totalLate',
             'totalLeave',
             'totalLateMinutes',
+            'totalEarlyLeaveMinutes',
             'supervisorDepartment'
         ));
     }
@@ -104,11 +106,29 @@ class ReportController extends Controller
         }
 
         $attendances = $query->orderBy('date', 'desc')->get();
+        $totalLateMinutes = $attendances->sum('late_minutes');
+        $totalEarlyLeaveMinutes = $attendances->sum('early_leave_minutes');
+        $totalWorkDurationMinutes = $attendances->sum('work_duration_minutes');
+        $totalPresent = $attendances->where('status', 'present')->count();
+        $totalLate = $attendances->where('status', 'late')->count();
+        $totalLeave = $attendances->whereIn('status', ['leave', 'sick', 'permission'])->count();
+
         $department = $departmentId ? Department::find($departmentId) : null;
         $branch = $branchId ? Branch::find($branchId) : null;
 
-        $pdf = Pdf::loadView('admin.reports.pdf', compact('attendances', 'startDate', 'endDate', 'department', 'branch'))
-            ->setPaper('a4', 'landscape');
+        $pdf = Pdf::loadView('admin.reports.pdf', compact(
+            'attendances',
+            'startDate',
+            'endDate',
+            'department',
+            'branch',
+            'totalLateMinutes',
+            'totalEarlyLeaveMinutes',
+            'totalWorkDurationMinutes',
+            'totalPresent',
+            'totalLate',
+            'totalLeave'
+        ))->setPaper('a4', 'landscape');
 
         return $pdf->download("Laporan_Presensi_{$startDate}_sampai_{$endDate}.pdf");
     }

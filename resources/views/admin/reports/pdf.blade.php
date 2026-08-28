@@ -104,13 +104,14 @@
             <tr>
                 <th style="width: 8%;">Tanggal</th>
                 <th style="width: 10%;">NIK</th>
-                <th style="width: 18%;">Nama Karyawan</th>
-                <th style="width: 14%;">Departemen</th>
-                <th style="width: 8%;">Masuk</th>
-                <th style="width: 8%;">Pulang</th>
-                <th style="width: 10%;">Terlambat</th>
-                <th style="width: 10%;">Durasi</th>
-                <th style="width: 14%;">Status</th>
+                <th style="width: 16%;">Nama Karyawan</th>
+                <th style="width: 12%;">Departemen</th>
+                <th style="width: 7%;">Masuk</th>
+                <th style="width: 7%;">Pulang</th>
+                <th style="width: 9%;">Terlambat</th>
+                <th style="width: 9%;">Pulang Awal</th>
+                <th style="width: 10%;">Durasi Kerja</th>
+                <th style="width: 12%;">Status</th>
             </tr>
         </thead>
         <tbody>
@@ -123,6 +124,7 @@
                     <td>{{ $att->clock_in ? Carbon\Carbon::parse($att->clock_in)->format('H:i') : '--:--' }}</td>
                     <td>{{ $att->clock_out ? Carbon\Carbon::parse($att->clock_out)->format('H:i') : '--:--' }}</td>
                     <td>{{ $att->late_minutes > 0 ? $att->late_minutes . ' mnt' : '-' }}</td>
+                    <td>{{ $att->early_leave_minutes > 0 ? $att->early_leave_minutes . ' mnt' : '-' }}</td>
                     <td>{{ $att->work_duration_minutes > 0 ? floor($att->work_duration_minutes / 60) . 'j ' . ($att->work_duration_minutes % 60) . 'm' : '-' }}</td>
                     <td>
                         <span class="badge badge-{{ $att->status }}">{{ strtoupper($att->status) }}</span>
@@ -130,14 +132,47 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="9" style="text-align: center; color: #94a3b8; padding: 20px;">Tidak ada data presensi untuk periode ini.</td>
+                    <td colspan="10" style="text-align: center; color: #94a3b8; padding: 20px;">Tidak ada data presensi untuk periode ini.</td>
                 </tr>
             @endforelse
         </tbody>
+        @if($attendances->isNotEmpty())
+        <tfoot>
+            <tr style="background-color: #f1f5f9; font-weight: bold;">
+                <td colspan="6" style="text-align: right; font-weight: bold;">TOTAL KESELURUHAN:</td>
+                <td style="color: #b45309; font-weight: bold;">{{ $totalLateMinutes ?? 0 }} mnt</td>
+                <td style="color: #be123c; font-weight: bold;">{{ $totalEarlyLeaveMinutes ?? 0 }} mnt</td>
+                <td style="font-weight: bold;">
+                    {{ isset($totalWorkDurationMinutes) && $totalWorkDurationMinutes > 0 ? floor($totalWorkDurationMinutes / 60) . 'j ' . ($totalWorkDurationMinutes % 60) . 'm' : '0j 0m' }}
+                </td>
+                <td><strong>{{ $attendances->count() }} Data</strong></td>
+            </tr>
+        </tfoot>
+        @endif
     </table>
 
+    <!-- Ringkasan Eksekutif Payroll -->
+    <div style="margin-top: 15px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; background-color: #f8fafc;">
+        <p style="margin: 0 0 6px 0; font-size: 10px; font-weight: bold; color: #0f172a; text-transform: uppercase;">
+            📊 Rekapitulasi Metrik Kehadiran & Penggajian (Payroll Summary)
+        </p>
+        <table style="width: 100%; font-size: 9px;">
+            <tr>
+                <td style="width: 25%;">Total Hadir Tepat Waktu: <strong>{{ $totalPresent ?? 0 }} Hari</strong></td>
+                <td style="width: 25%;">Total Terlambat: <strong>{{ $totalLate ?? 0 }} Kali</strong></td>
+                <td style="width: 25%;">Total Cuti & Izin: <strong>{{ $totalLeave ?? 0 }} Hari</strong></td>
+                <td style="width: 25%;">Total Log Presensi: <strong>{{ $attendances->count() }} Record</strong></td>
+            </tr>
+            <tr>
+                <td style="padding-top: 4px;">Akumulasi Keterlambatan: <strong style="color: #b45309;">{{ $totalLateMinutes ?? 0 }} Menit</strong></td>
+                <td style="padding-top: 4px;">Akumulasi Pulang Awal: <strong style="color: #be123c;">{{ $totalEarlyLeaveMinutes ?? 0 }} Menit</strong></td>
+                <td style="padding-top: 4px;" colspan="2">Total Jam Kerja Efektif: <strong>{{ isset($totalWorkDurationMinutes) && $totalWorkDurationMinutes > 0 ? floor($totalWorkDurationMinutes / 60) . ' Jam ' . ($totalWorkDurationMinutes % 60) . ' Menit' : '0 Jam' }}</strong></td>
+            </tr>
+        </table>
+    </div>
+
     <div class="footer">
-        <p>Dicetak otomatis melalui Attention OS Workforce Management &bull; Halaman 1</p>
+        <p>Dicetak otomatis melalui Attention OS Workforce Management &bull; Laporan Resmi</p>
     </div>
 
 </body>
