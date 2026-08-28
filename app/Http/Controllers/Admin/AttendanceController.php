@@ -21,8 +21,8 @@ class AttendanceController extends Controller
 
         $query = Attendance::with(['employee.user', 'employee.department', 'employee.position', 'branch', 'shift']);
 
-        $date = $request->input('date', Carbon::today()->format('Y-m-d'));
-        if ($request->filled('date')) {
+        $date = $request->has('date') ? $request->input('date') : Carbon::today()->format('Y-m-d');
+        if (!empty($date)) {
             $query->where('date', $date);
         }
 

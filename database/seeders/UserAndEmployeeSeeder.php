@@ -285,7 +285,8 @@ class UserAndEmployeeSeeder extends Seeder
             $date = Carbon::now()->subDays($i)->format('Y-m-d');
             $dayOfWeek = Carbon::parse($date)->dayOfWeek;
             
-            if ($dayOfWeek === Carbon::SATURDAY || $dayOfWeek === Carbon::SUNDAY) {
+            // For past history, skip weekends. For today ($i === 0), always seed so demo has data
+            if ($i > 0 && ($dayOfWeek === Carbon::SATURDAY || $dayOfWeek === Carbon::SUNDAY)) {
                 continue;
             }
 

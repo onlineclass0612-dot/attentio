@@ -25,14 +25,19 @@
 
     <!-- Filter Bar -->
     <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
-        <form method="GET" action="{{ route('admin.attendance.index') }}" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+        <form method="GET" action="{{ route('admin.attendance.index') }}" class="grid grid-cols-1 sm:grid-cols-5 gap-3">
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Tanggal</label>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Pilih Tanggal</label>
                 <input type="date" name="date" value="{{ $date }}"
                        class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-600">
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Departemen</label>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Cari Karyawan / NIK</label>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Ketik nama atau NIK..."
+                       class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-600">
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Departemen</label>
                 <select name="department_id" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-600">
                     <option value="">Semua Departemen</option>
                     @foreach($departments as $dept)
@@ -41,7 +46,7 @@
                 </select>
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Status Kehadiran</label>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Status Kehadiran</label>
                 <select name="status" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-600">
                     <option value="">Semua Status</option>
                     <option value="present" {{ request('status') == 'present' ? 'selected' : '' }}>Hadir Tepat Waktu</option>
@@ -51,12 +56,35 @@
                     <option value="absent" {{ request('status') == 'absent' ? 'selected' : '' }}>Alpha / Absent</option>
                 </select>
             </div>
-            <div class="flex items-end">
-                <button type="submit" class="w-full py-2 px-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-lg transition">
+            <div class="flex items-end space-x-2">
+                <button type="submit" class="flex-1 py-2 px-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-lg transition cursor-pointer">
                     Filter Data
                 </button>
+                <a href="{{ route('admin.attendance.index', ['date' => '']) }}" class="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-lg transition text-center" title="Tampilkan Semua Tanggal">
+                    Semua
+                </a>
             </div>
         </form>
+    </div>
+
+    <!-- Active Filter Info Banner -->
+    <div class="flex items-center justify-between px-1 text-xs">
+        <div class="flex items-center space-x-2">
+            @if(!empty($date))
+                <span class="text-slate-500">Menampilkan presensi tanggal:</span>
+                <span class="font-bold text-slate-900 bg-blue-50 border border-blue-200 text-blue-800 px-2 py-0.5 rounded-md">
+                    📅 {{ \Carbon\Carbon::parse($date)->translatedFormat('l, d F Y') }}
+                </span>
+            @else
+                <span class="text-slate-500">Menampilkan:</span>
+                <span class="font-bold text-slate-900 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md">
+                    📋 Seluruh Riwayat Tanggal
+                </span>
+            @endif
+        </div>
+        <span class="text-slate-500 font-medium">
+            Total <strong>{{ $attendances->total() }}</strong> data log ditemukan
+        </span>
     </div>
 
     <!-- Attendance Table -->
